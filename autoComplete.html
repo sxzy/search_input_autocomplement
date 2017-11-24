@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <body>
+        <div id="search-arr"><input type="text" id="searchInput" type="search" placeholder="search"><ul id="selectItem"></ul></div>
+    </body>
+  </head>
+</html>
+  <script>
+    // 执行JSONP操作的函数，设置添加script.
+      function getJSON (url,callback) {
+        // 因为百度的那个请求的地址是 https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=迷糊查询参数名&cb=回调函数名
+        // 所以这里会每次给getJSON 函数添加一个
+        var cbnum = "cb" + getJSON.counter++  // 假设这里就是cb1
+        var cbname = "getJSON." + cbnum  // 这里的函数名字就是 getJSON.cb1
+        url+="&cb="+ cbname    // 将这个回调函数名添加 到url后面
+        var script = document.createElement("script")   // 创建一个script标签
+        getJSON[cbnum] = function(response) {   // 给这个getJSON函数添加一个getJSON.cb1的函数属性。这也就是我们的回调函数
+          try {
+            callbackfn(response)    // 对获取到的response数据进行处理的回调函数
+          }
+          finally {   // 记得哦 执行完函数之后 要删除这个添加的属性  同时删除这个script标签 不然查询次数增加之后  会越来越多
+            delete getJSON[cbname]
+            script.parentNode.removeChild(script)
+          }
+        }
+        script.src = url   // 添加url属性
+        document.body.appendChild(script)
+      }
+      getJSON.counter = 0   // 初始化一个counter的值
+      // 对获取到的JSONP数据进行处理的回调函数
+      function callbackfn(data) {
+        var selectList = document.getElementById("selectItem")
+        // 可以通过视频中看到，数据的结构中的关键字存在data.s中
+        if (data.s.length !== 0) {　　　
+          let newList = data.s.map((item) => `<li><a target="_blank" href="https://www.baidu.com/s?wd=${item}">${item}</a></li>`) 
+          let newStr = newList.join('')
+          selectList.innerHTML = newStr
+          selectList.style.display = 'block'
+        }
+      }
+    window.onload = function () {
+      var target = document.getElementById("searchInput")
+      var selectList = document.getElementById("selectItem")
+      AutoCompleteInput()
+      //  定义一个隐藏下拉单的函数
+      function hideList (selectList) {
+        selectList.innerHTML = ''
+        selectList.style.display = 'none'
+      }
+      // 对输入框进行监听 数据变化就执行getJSONP函数，请求新的关键字
+      function AutoCompleteInput() {
+        target.addEventListener('input', () => {
+          let oldValue = ''
+          let newValue = target.value
+          if (newValue !== '' && newValue !== oldValue) {
+            getJSON('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd='+(newValue))
+          } else {
+            hideList(selectList)
+          }
+          oldValue = target.value
+        })
+        // 点击除了下拉框和输入框之外的其他地方 要隐藏下拉框
+        document.addEventListener('click', (e) => {
+          // 这里使用了contains，contaisn可以知道某个元素是否是其子元素
+          if(selectList.contains(e.target)||e.target.getAttribute('id') !== 'searchInput') {
+            hideList(selectList)
+          }
+        })
+        target.addEventListener('keydown', () => {
+          hideList(selectList)
+        })
+        // 事件代理部分代码 
+        selectList.addEventListener('click', (e) => {
+          e.preventDefault()   // 我为了防止点击之后跳转到搜索页面，所以写了这句，你可以去掉，就可以跳转到搜索结果页面了
+          let selectValue = ''
+          if (e.target && e.target.nodeName == "A") {
+            selectValue = e.target.innerHTML  
+          } else {
+            selectValue = e.target.getElementByTagName('a').innerHTML
+          }
+          target.value = selectValue
+        })
+      }
+}
+  </script>
+<style>
+* {
+  padding:0;
+  margin:0;
+  box-sizing:border-box;
+}
+#search-arr {
+  position:relative;
+  width:200px;
+  margin:50px auto;
+}
+#searchInput {
+  outline: none;
+  width:200px;
+  height:30px;
+  border:1px solid rgba(109,207,246,.5);
+  border-radius:25px;
+  padding:10px 10px 10px 20px;
+  background:#ededed;
+  transition:all ease .4s;
+}
+#searchInput:focus {
+  /* width:250px; */
+  box-shadow: 0 0 5px rgba(109,207,246,.5);
+  background:white;
+}
+ul#selectItem {
+  display: none;
+  position:absolute;
+  top:31px;
+  width:100%;
+  border:1px solid gray;
+  border-top:none;
+}
+li {
+  width:100%;
+  list-style-type:none;
+  background:white;
+  color:black;
+  /* padding:10px; */
+  cursor:pointer;
+}
+li:hover {
+    background: #ededed;
+}
+a {
+  display: inline-block;
+  text-decoration: none;
+  color:black;
+  width:100%;
+  padding:1px 5px;
+}
+</style>
