@@ -56,7 +56,7 @@
           let oldValue = ''
           let newValue = target.value
           if (newValue !== '' && newValue !== oldValue) {
-            getJSON('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd='+(newValue))
+            getJSON('https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd='+ (escape(newValue)))
           } else {
             hideList(selectList)
           }
